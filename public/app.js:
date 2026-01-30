@@ -1,0 +1,209 @@
+class RustMakePro {
+    constructor() {
+        this.token = null;
+        this.userId = null;
+        this.socket = io();
+        this.workflows = [];
+        this.currentWorkflow = { nodes: [], edges: [] };
+        this.nodeId = 0;
+        this.init();
+    }
+
+    init() {
+        this.loadAuth();
+        this.bindEvents();
+        this.socketEvents();
+        this.renderKeys();
+    }
+
+    loadAuth() {
+        const auth = localStorage.getItem('rustmake-auth');
+        if (auth) {
+            const { token, userId } = JSON.parse(auth);
+            this.token = token;
+            this.userId = userId;
+            document.getElementById('userInfo').innerHTML = `👤 User #${userId}`;
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('authSection').style.display = 'none';
+        }
+    }
+
+    bindEvents() {
+        document.getElementById('loginBtn').onclick = () => this.showLogin();
+        document.getElementById('registerBtn').onclick = () => this.showRegister();
+    }
+
+    socketEvents() {
+        this.socket.on('execution-progress', (data) => {
+            this.addExecutionLog(`📍 ${data.step} (${data.progress}%)`);
+        });
+
+        this.socket.on('execution-complete', (data) => {
+            this.addExecutionLog(`✅ ${data.result}`, 'success');
+        });
+    }
+
+    async apiCall(endpoint, options = {}) {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const response = await fetch(endpoint, {
+            ...options,
+            headers
+        });
+
+        return response.json();
+    }
+
+    async showLogin() {
+        const email = prompt('Email:');
+        const password = prompt('Password:');
+        if (!email || !password) return;
+
+        try {
+            const data = await this.apiCall('/api/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+
+            if (data.token) {
+                this.token = data.token;
+                this.userId = data.userId;
+                localStorage.setItem('rustmake-auth', JSON.stringify({ token: data.token, userId: data.userId }));
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userInfo').innerHTML = `👤 User #${data.userId}`;
+            }
+        } catch (error) {
+            alert('Login failed: ' + (data?.error || 'Unknown error'));
+        }
+    }
+
+    async saveApiKey() {
+        if (!this.token) {
+            alert('Please login first');
+            return;
+        }
+
+        const service = document.getElementById('serviceInput').value;
+        const key = document.getElementById('keyInput').value;
+
+        if (!service || !key) {
+            alert('Please fill both fields');
+            return;
+        }
+
+        try {
+            await this.apiCall('/api/keys', {
+                method: 'POST',
+                body: JSON.stringify({ service, key_value: key })
+            });
+            alert('✅ API Key saved!');
+            this.renderKeys();
+            document.getElementById('serviceInput').value = '';
+            document.getElementById('keyInput').value = '';
+        } catch (error) {
+            alert('Failed to save key');
+        }
+    }
+
+    async renderKeys() {
+        if (!this.token) return;
+        const keys = await this.apiCall('/api/keys');
+        const keysList = document.getElementById('keysList');
+        keysList.innerHTML = keys.map(k => `<div>🔑 ${k.service}</div>`).join('');
+    }
+
+    addNode(type, label, x = Math.random() * 600, y = Math.random() * 400) {
+        const node = {
+            id: `node-${this.nodeId++}`,
+            type,
+            data: { label },
+            position: { x, y }
+        };
+        this.currentWorkflow.nodes.push(node);
+        this.renderCanvas();
+        return node;
+    }
+
+    addTrigger() {
+        this.addNode('trigger', 'HTTP Trigger');
+    }
+
+    addAction(type) {
+        const labels = {
+            email: 'Send Email',
+            openai: 'OpenAI GPT',
+            slack: 'Slack Message',
+            webhook: 'Custom Webhook'
+        };
+        this.addNode('action', labels[type] || 'Action');
+    }
+
+    renderCanvas() {
+        const canvas = document.getElementById('workflowCanvas');
+        canvas.innerHTML = '';
+        
+        this.currentWorkflow.nodes.forEach(node => {
+            const div = document.createElement('div');
+            div.className = `node ${node.type}`;
+            div.style.left = node.position.x + 'px';
+            div.style.top = node.position.y + 'px';
+            div.innerHTML = `<div>${node.data.label}</div>`;
+            div.draggable = true;
+            
+            div.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', node.id);
+            };
+            
+            canvas.appendChild(div);
+        });
+    }
+
+    async saveWorkflow() {
+        if (!this.token) {
+            alert('Please login first');
+            return;
+        }
+
+        const name = prompt('Workflow name:');
+        if (!name) return;
+
+        try {
+            await this.apiCall('/api/workflows', {
+                method: 'POST',
+                body: JSON.stringify({ name, dag: this.currentWorkflow })
+            });
+            alert('✅ Workflow saved!');
+        } catch (error) {
+            alert('Failed to save workflow');
+        }
+    }
+
+    async runWorkflow() {
+        if (this.currentWorkflow.nodes.length === 0) {
+            alert('Add some nodes first!');
+            return;
+        }
+
+        document.getElementById('executionLog').innerHTML = '<div>🚀 Starting execution...</div>';
+        this.socket.emit('execute-workflow', this.currentWorkflow);
+    }
+
+    addExecutionLog(message, type = 'info') {
+        const log = document.getElementById('executionLog');
+        const div = document.createElement('div');
+        div.className = type;
+        div.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+        log.insertBefore(div, log.firstChild);
+    }
+}
+
+// Initialize app
+const app = new RustMakePro();
