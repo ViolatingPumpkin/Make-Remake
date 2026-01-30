@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RustMake Pro - Enterprise Automation Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>🦀 RustMake Pro</h2>
+                <span>Enterprise Edition</span>
+            </div>
+            
+            <!-- Auth Section -->
+            <div class="auth-section" id="authSection">
+                <button id="loginBtn" class="btn-primary">🔐 Login</button>
+                <button id="registerBtn" class="btn-secondary">📝 Register</button>
+                <div id="userInfo" style="display: none;"></div>
+            </div>
+
+            <!-- API Keys -->
+            <div class="section">
+                <h4>🔑 API Keys</h4>
+                <div class="input-group">
+                    <input id="serviceInput" placeholder="Service (OpenAI, Slack, etc)">
+                    <input id="keyInput" type="password" placeholder="Your API key">
+                    <button onclick="saveApiKey()" class="btn-sm">💾 Save</button>
+                </div>
+                <div id="keysList"></div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section">
+                <h4>⚡ Quick Actions</h4>
+                <button onclick="newWorkflow()" class="btn-sm full-width">➕ New Workflow</button>
+                <button onclick="loadWorkflows()" class="btn-sm full-width">📂 Load Workflows</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Workflow Builder</h1>
+                <div class="toolbar">
+                    <button onclick="addTrigger()" class="toolbar-btn trigger-btn">🌐 HTTP Trigger</button>
+                    <button onclick="addAction('email')" class="toolbar-btn">📧 Email</button>
+                    <button onclick="addAction('openai')" class="toolbar-btn">🤖 OpenAI</button>
+                    <button onclick="addAction('slack')" class="toolbar-btn">💬 Slack</button>
+                    <button onclick="addAction('webhook')" class="toolbar-btn">🔗 Webhook</button>
+                    <button onclick="saveWorkflow()" class="toolbar-btn primary">💾 Save Workflow</button>
+                    <button onclick="runWorkflow()" class="toolbar-btn success">▶️ Execute</button>
+                </div>
+            </header>
+
+            <!-- Workflow Canvas -->
+            <div id="workflowCanvas" class="workflow-canvas"></div>
+
+            <!-- Executions Panel -->
+            <div class="executions-panel">
+                <h3>📊 Recent Executions</h3>
+                <div id="executionLog"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Socket.io -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
