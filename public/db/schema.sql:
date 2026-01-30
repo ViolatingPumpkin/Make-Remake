@@ -1,0 +1,37 @@
+-- Database schema documentation
+-- Run automatically by server.js
+
+-- Users table (JWT auth)
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    password TEXT, -- bcrypt hashed
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- API Keys (Make.com style)
+CREATE TABLE api_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    service TEXT, -- 'openai', 'slack', 'google', etc
+    key_value TEXT, -- encrypted API keys
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Workflows (DAG JSON)
+CREATE TABLE workflows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    name TEXT,
+    dag TEXT, -- JSON stringified workflow
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Executions log
+CREATE TABLE executions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    workflow_id INTEGER,
+    status TEXT,
+    result TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+);
