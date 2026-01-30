@@ -1,0 +1,30 @@
+nodejs>=18.0.0
+npm>=9.0.0
+express==4.19.2
+socket.io==4.8.0
+sqlite3==5.1.7
+bcryptjs==2.4.3
+jsonwebtoken==9.0.2
+cors==2.8.5
+body-parser==1.20.3
+nodemon==3.1.4
+chrome>=90
+firefox>=90
+safari>=15
+edge>=90
+TCP_PORT=3000
+replit_account
+render_account
+github_account
+write_access=rustmake.db
+read_access=public/
+execute_access=node,server.js
+JWT_SECRET=rustmake-super-secret-2026
+NODE_ENV=production
+PORT=3000
+npm install
+npm start
+https://replit.com
+https://render.com
+node --version
+npm --version
