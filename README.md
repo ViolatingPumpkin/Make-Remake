@@ -58,3 +58,6 @@ Click Execute → Watch realtime logs
 2. render.com → New → Web Service → Connect repo
 3. Build Command: `npm install`
 4. Start Command: `npm start`
+
+
+**Make sure you have the requirements listed in requirerments.txt before to ensure smooth running**
