@@ -60,4 +60,4 @@ Click Execute → Watch realtime logs
 4. Start Command: `npm start`
 
 
-**Make sure you have the requirements listed in https://github.com/ViolatingPumpkin/Make-Remake/blob/main/requirements.txt before to ensure smooth running**
+**Make sure you have the requirements listed in [requirements.txt](requirements.txt) before to ensure smooth running**
